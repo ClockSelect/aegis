@@ -1,0 +1,173 @@
+GeekVape Aegis Legend
+
+NuvoTon NUC126LG4AE
+
+PA.1	MFP6	PWM1 channel 4 output/capture input
+PA.2	MFP6	PWM1 channel 3 output/capture input
+PA.3	MFP6	PWM1 channel 2 output/capture input
+PB.0	MFP1	ADC0 channel 0 analog input
+PB.3	MFP1	ADC0 channel 3 analog input
+PB.4	MFP1	ADC0 channel 4 analog input
+PB.5	MFP1	ADC0 channel 13 analog input
+PB.6	MFP1	ADC0 channel 14 analog input
+PB.7	MFP1	ADC0 channel 15 analog input
+PC.0	MFP2	SPI0 serial clock pin
+PC.3	MFP2	SPI0 MOSI (Master Out, Slave In) pin
+PD.7	MFP6	PWM0 channel 5 output/capture input
+
+
+ 1 	PB.5			ADC0 channel 13 analog input	( Battery charging current )
+ 2 	PB.6			ADC0 channel 14 analog input	( Coil current )
+ 3 	PB.7			ADC0 channel 15 analog input	( Coil voltage )
+ 4 	nRESET			
+ 5 	PD.0			I/O Quasi (High)				( + Button )
+ 6 	AVSS			GND
+ 7 	PD.1			I/O Out (Low)
+ 8 	PD.2			I/O	Out
+ 9 	PD.3			I/O Out (Low)
+10	VBAT			
+11	PF.0			I/O Out (Low)
+12	PF.1			I/O Out (Low)
+13	PF.2			I/O Out (Low)
+14	PD.7			PWM0 channel 5 output			( Battery Charge Current Driver )
+15	PF.3			I/O Out (Low)
+16	PF.4			I/O Out
+17	LDO_CAP			
+18	VSS				GND
+19	PC.0			SPI0 serial clock pin (SCL)
+20	PC.1			Display Data/Instruction Select
+21	PC.2			Display Reset
+22	PC.3			SPI0 MOSI pin (SDA)
+23	PC.4			I/O Out	Display Chip Select
+24	PE.0			I/O In
+25	PE.6			I/O Out (Low)
+26	PE.7		 	I/O Out (Low)
+27	PE.10 			I/O Quasi (High)				( Fire Button )
+28	PE.11 			I/O Out							( Buck or Boost Enable (High) )
+29	PE.12 			I/O Out							( Buck or Boost Enable (High) )
+30	PE.13 			I/O Quasi (High)				( - Button )
+31	VDDIO 			3.3V
+32	USB_VBUS 		
+33	USB_D- 			
+34	USB_D+ 			
+35	USB_VDD33_CAP	
+36	PF.7			I/O Out (Low)
+37	PA.3			PWM1 channel 2 output			( LCD Backlight LED Driver )
+38	PA.2			PWM1 channel 3 output			( Boost Converter Driver )
+39	PA.1			PWM1 channel 4 output			( Buck Converter Driver )
+40	PA.0			I/O	Out							( Cell 2 Charger Enable (Low) )
+41	VDD		 		3.3V
+42	AVDD			3.3V
+43	VREF			3.3V
+44	PB.0			ADC0 channel 0 analog input		( Cell 1+2 )
+45	PB.1			I/O Out
+46	PB.2			I/O Out							( Cell 1 Charger Enable (Low) )
+47	PB.3			ADC0 channel 3 analog input		( Board Temperature Sensor )
+48	PB.4			ADC0 channel 4 analog input		( Cell 1 )
+
+ADC CLK = HIRC/8 = 2.7648MHz
+
+Cell 1+2 Voltage			( ( 9900 * CH0 ) >> 12 ) + 90
+Cell 1 Voltage				( ( 4950 * CH4 ) >> 12 ) + 35
+Battery Charge Current		( 3300 * CH13 ) >> 12
+Coil Current				40 * ( ( 3300 * CH14 ) >> 12 )
+Coil Voltage				( 39600 * CH15 ) >> 13
+Board Temperature Sensor	( 10000 * CH3 ) / ( 4096 - CH3 )
+
+Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
+
+ 0	4	
+ 1	4	Flags (Bitfield)
+ 2	4	Puffs
+ 3	4	
+ 4	4	Registered Coil
+ 5	2	TCR
+ 6	2	TC Temperature
+ 7	2	
+ 8	2	Power
+ 9	2	
+10	2	VPC-P1
+11	2	VPC-P2
+12	2	VPC-P3
+13	2	VPC-P4
+14	2	VPC-P5
+15	2	
+16	1	Mode (0:?,1:Power,2:TCx,3:VPC,4:Bypass)
+17	1	Mode Screen (0:Power,1:Ti,2:Ni,3:?(90),4:SS,5:?(92),6:TCR,10:Bypass,11:VPC)
+18	1	Screen Brightness (0..100)
+19	1	Keys Lock
+20	1	
+21	1	
+22	1	
+23	1	Coil Lock
+24	1	Color Scheme (0..2)
+25	1	
+26	0	(End of Flash config)
+27	1	
+28	2	Puff Time
+29	8	Coil	(avg:38)
+30	8	Coil Current
+31	8	Coil Voltage
+32	8	Sample ADC4	(Bat Cell 1)
+33	8	Sample ( ADC0 - ADC4 )	(Bat Cell 2)
+34	8	
+35	8	
+36	8	Sample ADC0	(Bat Cell 1+2)
+37	1	Atomizer Status (1:Low,3:Ok,4:High,5:NoAto)
+38	4	Coil average
+39	4	Coil Current
+40	4	Coil Voltage
+41	4	Battery Cell 1?
+42	4	Battery Cell 2?
+43	4	
+44	4	
+45	1	PE0 State (?)
+46	2	
+47	4	Battery Cell 1?
+48	4	Battery Cell 2?
+49	4	
+50	4	
+51	4	Battery total?
+52	4	
+53	4	
+54	4	
+55	4	
+56	2	
+57	2	
+58	2	
+59	1	
+60	4	
+61	1	
+62	1	
+63	1	Board Temperature (0..100)
+64	1	
+65	1	
+66	1	
+67	1	
+68	4	?(tick)
+69	4	?(tick)
+70	4	
+71	4	
+72	1	
+73	1	PF4 Level (?)
+74	1	
+75	1	
+76	1	
+77	1	
+78	1	PD2 Level (?)
+
+Flags
+
+0x04	0:°C,1:°F
+
+Events
+
+ 1	16	PD0+PE13+PE10
+ 1	14	PD0+PE10
+ 1	13	PE10+PE13
+ 1	15	PD0+PE13
+ 1	10	PE10
+ 1	11	PE13
+ 1	12	PD0
+ 4	 2	Overtemp
+ 4	 3	Battery Low
