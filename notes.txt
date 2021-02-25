@@ -67,7 +67,7 @@ PD.7	MFP6	PWM0 channel 5 output/capture input
 
 ADC CLK = HIRC/8 = 2.7648MHz
 
-Cell 1+2 Voltage			( ( 9900 * CH0 ) >> 12 ) + 90
+Cell 1+2 Voltage			( ( 9900 * CH0 ) >> 12 ) + 90 ( + 400 If PF4 Low )
 Cell 1 Voltage				( ( 4950 * CH4 ) >> 12 ) + 35
 Battery Charge Current		( 3300 * CH13 ) >> 12
 Coil Current				40 * ( ( 3300 * CH14 ) >> 12 )
@@ -92,10 +92,10 @@ Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 13	2	VPC-P4
 14	2	VPC-P5
 15	2	TC Power Limit
-16	1	Mode (0:?,1:Power,2:TCx,3:VPC,4:Bypass)
+16	1	Mode (0:TCR,1:Power,2:TC,3:VPC,4:Bypass)
 17	1	Mode Screen (0:Power,1:Ti,2:Ni,3:?(90),4:SS,5:?(92),6:TCR,10:Bypass,11:VPC)
 18	1	Screen Brightness (0..100)
-19	1	Keys Lock
+19	1	Keys Locked
 20	1	
 21	1	
 22	1	
@@ -103,49 +103,49 @@ Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 24	1	Color Scheme (0..2)
 25	1	(Align 4)
 26	0	(End of Flash config)
-27	1	1:Idle,2:Test Coil,3:Fire (?)
+27	1	1:Idle,2:Measure,3:Fire (?)
 28	2	Puff Time
-29	8	Coil	(avg:38)
+29	8	CoilResistance
 30	8	Coil Current
 31	8	Coil Voltage
-32	8	Sample ADC4	(Bat Cell 1)
-33	8	Sample ( ADC0 - ADC4 )	(Bat Cell 2)
+32	8	Battery Cell 1	(Firing)
+33	8	Battery Cell 2	(Firing)
 34	8	
 35	8	
-36	8	Sample ADC0	(Bat Cell 1+2)
-37	1	Atomizer Status (1:Low,3:Ok,4:High,5:NoAto)
-38	4	Coil average
-39	4	Coil Current
-40	4	Coil Voltage
-41	4	Battery Cell 1?
-42	4	Battery Cell 2?
+36	8	Battery Total
+37	1	Atomizer Status (0:Unk,1:Low,3:Ok,4:High,5:NoAto)
+38	4	Coil Resistance	(Average of #29)
+39	4	Coil Current	(Average of #30)
+40	4	Coil Voltage	(Average of #31)
+41	4	Battery Cell 1	(Windowed Average of #32)
+42	4	Battery Cell 2	(Windowed Average of #33)
 43	4	
 44	4	
 45	1	USB Connection State
 46	2	
-47	4	Battery Cell 1?
-48	4	Battery Cell 2?
+47	4	Battery Cell 1
+48	4	Battery Cell 2
 49	4	
 50	4	
-51	4	Battery total?
-52	4	
-53	4	
+51	4	Battery Total?
+52	4	Battery Cell 1	(Average of #47)
+53	4	Battery Cell 2	(Average of #48)
 54	4	
 55	4	
-56	2	
-57	2	
-58	2	
+56	2	Coil Temperature
+57	2	Coil Temperature	(Average of #56)
+58	2	Coil Power
 59	1	Batt v1 < 3.0 || vtot < 6.0 (0x02) | v2 < 3.0 (0x04)
-60	4	
-61	1	
+60	4	Coil Resistance
+61	1	Box State
 62	1	Current Screen ID
 63	1	Board Temperature (0..100)
 64	1	
-65	1	
-66	1	
+65	1	(Startup:1)
+66	1	(Startup:2)
 67	1	
-68	4	?(tick)
-69	4	?(tick)
+68	4	Fire Start Tick?
+69	4	Fire Stop Tick?
 70	4	New Coil Rez
 71	4	Old Coil Rez
 72	1	Batt v1 < 1.0 && vtot > 6.2
@@ -153,32 +153,113 @@ Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 74	1	
 75	1	
 76	1	
-77	1	
+77	1	Stealth Mode
 78	1	Display On/Off (PD2)
 
-Flags
+Flags (#4)
 
 0x04	0:°C,1:°F
 
-Events
+Box State (#61)
+0x_1	Startup
+0x_2	On
+0x_3	Off
+0x_5	Battery Low
+0x0_	Active
+0x1_	Idle (Screen Saver)
+0x2_	Locked
 
- 1	16	PD0+PE13+PE10
- 1	14	PD0+PE10
- 1	13	PE10+PE13
- 1	15	PD0+PE13
- 1	10	PE10
- 1	11	PE13
- 1	12	PD0
- 2	 1	
- 2	 2	Invoke Screen
- 2	 3	Revoke Warning Screen
- 2	 4	Invoke Warning Screen
- 2	 5	Init Screen?
- 2	 6	Exec screen action?
- 2	 7	Set Screen Brightness
- 4	 2	Overtemp
- 4	 3	Battery Low
- 5	 3	Change Battery Low State
- 5	 5	USB (Dis)connect
- 6	 3	Go To Sleep
- 6	 5	Dimm Screen
+0x01	Startup
+0x02	Active On
+0x12	Idle On
+0x13	Idle Off
+0x23	Locked Off
+0x05	Battery Low
+
+Events
+ 1	 1	1	0	---+++-+-+
+ 1	 2	1	0	10 x Fire
+ 1	 3	1	0	FF+
+ 1	 4	1	0	F-+F-+
+ 1	 5	1	0	FF-+FF-+
+ 1	 6	1	0	5 x Fire 		(On/Off)
+ 1	 7	1	0	4 x Fire
+ 1	 8	1	0	3 x Fire 		(Settings)
+ 1	 9	1	0	2 x Fire
+ 1	10	H	R	PE10			(Fire)
+ 1	11	H	R	PE13			(-)
+ 1	12	H	R	PD0				(+)
+ 1	13	H	R	PE10+PE13		(Brigthness+)
+ 1	14	H	R	PD0+PE10		(Brightness-)
+ 1	15	H	R	PD0+PE13		(Lock/Version)
+ 1	16	H	R	PD0+PE13+PE10	(Stealth/Reset)
+
+ 2	 1			? (Call Screen pfunc_5)
+ 2	 2	S		Invoke Screen
+ 2	 3	D		Close Dialog Screen
+ 2	 4	D		Open Dialog Screen
+ 2	 5			Init Screen?
+ 2	 6			? (Call Screen pfunc_4)
+ 2	 7	B%		Set Screen Brightness
+
+ 3	 1			Start Fire 1 (Init)
+ 3	 2			Stop Fire
+ 3	 3			Start Fire 2 (Warmup)
+ 3	 4			Fire (Power)
+ 3	 6			Fire (TC)
+ 3	 7			Fire (Bypass)
+ 3	 8			Fire (TCR)
+ 3	 9			Fire (VPC) (Start)
+ 3	10			Fire (VPC)
+ 3	11	0/1		Choose Old/New Coil
+ 3	13			Start Fire 3 (Test Coil)
+ 3	14			Start Fire 4 (Still Testing Coil)
+ 3	15			Test Atomizer
+
+ 4	 2			Overtemp
+ 4	 3			Battery Low
+ 4	 4			Brown-Out
+
+ 5	 1			Screen Change
+ 5	 3			Battery Low State Change
+ 5	 4			Coil Change (±2%)
+ 5	 5			USB (Dis)connect
+ 5	 6	NS	OS	Atomizer Status Change
+ 5	 7	NS	OS	Box State Change
+
+ 6	 1			Shutdown
+ 6	 3			Go To Sleep
+ 6	 4	NS		Change Box State
+ 6	 5			Dimm Screen
+ 6	 6			
+ 6	 7			
+
+Key Events Parameters
+H	 1		Key Down
+	 2..4	Hold Time T1/T2/T3
+	 5		Key Up
+	 6		Hold/Repeat
+R	 n		Repeat Count
+
+Screens Events Parameters
+S	 0		Idle (Blank)
+	 1		? (Blank)
+	 2		Main Screen
+	 3		Off (Blank)
+	 4		Startup
+	 5		Shutdown
+	 6		New Coil
+	 7		Battery Charger
+	 8		Version
+	11		Stealth
+D	 0		Ato Short
+	 1		Ato Short
+	 2		Ohms High
+	 3		No Coil
+	 4		Overheat
+	 5		Battery Low
+	 6		Battery Weak
+	 7		Brightness
+	 8		Unlock
+	11		No Liquid
+	12		Cut-off
