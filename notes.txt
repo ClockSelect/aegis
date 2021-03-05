@@ -1,6 +1,32 @@
 GeekVape Aegis Legend
 
-NuvoTon NUC126LG4AE
+Microcontroller:	NuvoTon NUC126LG4AE
+Display:			ST7735S, 80x160
+
+Shunt:				25 mΩ
+
+CONFIG0 = 0xF73FFB7E	0b1111_0111_0011_1111_1111_1011_0111_1110
+CONFIG1 = 0x0003F800
+
+CWDTEN		111		WDT hardware enable function is inactive
+CWDTPDEN	1		WDT controller by LIRC on power-down mode
+CFGXT1		0		PF[4:3] configured as GPIO (no HXT)
+CFOSC		1		HCLK = 22.1184 MHz HIRC at reset
+CBODEN		0		Brown-out detect Enabled after powered on
+CBOV		01		Brown-out voltage is 2.7V
+CBORST		1		Brown-out reset Disabled after powered on
+ICELOCK		1		Enable ICE function
+CIOINI		0		All GPIO set as input tri-state mode after powered on
+CBS			01		Boot from LDROM without IAP mode
+MERASE		1		ISP Flash Mass Erase command Disabled
+LOCK		1		Flash memory content is not locked
+DFEN 		0		Data Flash Enabled
+DFBA		0x3F800	Data Flash Base address
+
+HCLK		 71884800 Hz
+PLL			143769600 Hz
+
+MFP Settings
 
 PA.1	MFP6	PWM1 channel 4 output/capture input
 PA.2	MFP6	PWM1 channel 3 output/capture input
@@ -15,6 +41,7 @@ PC.0	MFP2	SPI0 serial clock pin
 PC.3	MFP2	SPI0 MOSI (Master Out, Slave In) pin
 PD.7	MFP6	PWM0 channel 5 output/capture input
 
+Pinout
 
  1 	PB.5			ADC0 channel 13 analog input	( Battery charging current )
  2 	PB.6			ADC0 channel 14 analog input	( Coil current )
@@ -34,17 +61,17 @@ PD.7	MFP6	PWM0 channel 5 output/capture input
 16	PF.4			I/O Out							( ? Low When Battery Low )
 17	LDO_CAP			
 18	VSS				GND
-19	PC.0			SPI0 serial clock pin (SCL)
-20	PC.1			Display Data/Instruction Select
-21	PC.2			Display Reset
-22	PC.3			SPI0 MOSI pin (SDA)
-23	PC.4			I/O Out	Display Chip Select
-24	PE.0			I/O In							( USB Sensing )
+19	PC.0			SPI0 serial clock pin (SCL)		( Display Serial Clock )
+20	PC.1			I/O Out							( Display Data/Instruction Select )
+21	PC.2			I/O Out							( Display Reset )
+22	PC.3			SPI0 MOSI pin (SDA)				( Display Serial Data )
+23	PC.4			I/O Out							( Display Chip Select )
+24	PE.0			I/O In							( USB Sensing (Plugged:High) )
 25	PE.6			I/O Out (Low)					( Unused )
 26	PE.7		 	I/O Out (Low)					( Unused )
 27	PE.10 			I/O Quasi (High)				( Fire Button )
-28	PE.11 			I/O Out							( Buck or Boost Enable (High) )
-29	PE.12 			I/O Out							( Buck or Boost Enable (High) )
+28	PE.11 			I/O Out							( Buck/Boost Enable (High) )
+29	PE.12 			I/O Out							( Buck/Boost Enable (High) )
 30	PE.13 			I/O Quasi (High)				( - Button )
 31	VDDIO 			3.3V
 32	USB_VBUS 		
@@ -65,13 +92,13 @@ PD.7	MFP6	PWM0 channel 5 output/capture input
 47	PB.3			ADC0 channel 3 analog input		( Board Temperature Sensor )
 48	PB.4			ADC0 channel 4 analog input		( Cell 1 )
 
-ADC CLK = HIRC/8 = 2.7648MHz
+ADC CLK = HIRC / 7 = 3.254 MHz, VREF = 3.3V
 
-Cell 1+2 Voltage			( ( 9900 * CH0 ) >> 12 ) + 90 ( + 400 If PF4 Low )
-Cell 1 Voltage				( ( 4950 * CH4 ) >> 12 ) + 35
-Battery Charge Current		( 3300 * CH13 ) >> 12
-Coil Current				40 * ( ( 3300 * CH14 ) >> 12 )
-Coil Voltage				( 39600 * CH15 ) >> 13
+Cell 1+2 Voltage			( ( 3 * 3300 * CH0 ) >> 12 ) + 90 ( + 400 If PF4 Low )		Max  9900 mV
+Cell 1 Voltage				( ( 3 * 3300 / 2 * CH4 ) >> 12 ) + 35						Max  4950 mV
+Battery Charge Current		( 3300 * CH13 ) >> 12										Max  3300 mA
+Coil Current				40 * ( ( 3300 * CH14 ) >> 12 )								Max   132  A
+Coil Voltage				( 6 * 3300 * CH15 ) >> 12									Max 19800 mV
 Board Temperature Sensor	( 10000 * CH3 ) / ( 4096 - CH3 )
 
 Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
@@ -148,7 +175,7 @@ Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 69	4	Fire Stop Tick?
 70	4	New Coil Rez
 71	4	Old Coil Rez
-72	1	Batt v1 < 1.0 && vtot > 6.2
+72	1	!(Batt v1 < 1.0 && vtot > 6.2)
 73	1	~PF4 Level (?)
 74	1	
 75	1	
@@ -166,7 +193,7 @@ Box State (#61)
 0x_3	Off
 0x_5	Battery Low
 0x0_	Active
-0x1_	Idle (Screen Saver)
+0x1_	Idle
 0x2_	Locked
 
 0x01	Startup
@@ -177,6 +204,7 @@ Box State (#61)
 0x05	Battery Low
 
 Events
+
  1	 1	1	0	---+++-+-+
  1	 2	1	0	10 x Fire
  1	 3	1	0	FF+
