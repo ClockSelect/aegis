@@ -16,22 +16,28 @@ uint16_t	bgcolor;
 
 
 //------------------------------------------------------------------------------
-// Inform the display manager of the display we'll use.
+// Display startup.
 //------------------------------------------------------------------------------
-void SetDisplay( const display_t *d )
+// Initializes the display global variable and calls the startup process.
+//------------------------------------------------------------------------------
+void DMStartup()
 {
-	display = d;
+	display = &ST7735S;
+	display->Startup();
 }
 
 
-void SetDisplayStatus( uint32_t status )
+//------------------------------------------------------------------------------
+// Display status change
+//------------------------------------------------------------------------------
+void DMSetStatus( DISPLAY_STATUS status )
 {
 	display_status = status;
 	EMSendEvent1P( EVENT_DISPLAY, EV_D_DISPLAY_STATUS, status );
 }
 
 
-DISPLAY_STATUS GetDisplayStatus( void )
+DISPLAY_STATUS DMGetStatus( void )
 {
 	return display_status;
 }
@@ -60,7 +66,7 @@ void FormatNumber( char *str, uint32_t num, int nbdig, int nbdec, int exp )
 
 	while ( num )
 	{
-		num = HDIV_Div( num, 10 );
+		num /= 10;
 		uint16_t rem = HDIV->DIVREM;
 		buf[idx++] = '0' + rem;
 	}

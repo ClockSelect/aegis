@@ -219,7 +219,7 @@ static void Close( void )
 static void Sleep( void )
 {
 	send_cmd_byte( 0x10 );
-	SetDisplayStatus( DISPLAY_SLEEPING );
+	DMSetStatus( DISPLAY_SLEEPING );
 }
 
 static void Wakeup( void )
@@ -227,7 +227,7 @@ static void Wakeup( void )
 	send_cmd_byte( 0x11 );
 
 	if ( display_status == DISPLAY_SLEEPING )
-		TMCreateTask( 120, SetDisplayStatus, DISPLAY_ON, 0, 0, 0 );
+		TMCreateTask( 120, (void(*)(uint32_t))DMSetStatus, DISPLAY_ON, 0, 0, 0 );
 }
 
 static void Reset( void )
@@ -338,7 +338,7 @@ static int draw_char( const uint16_t c, int x, int y )
 	return cw;
 }
 
-static void Print( const char *str, const rect_t *r )
+static void Print( const char *str, const rect_t *r, unsigned align )
 {
 	if ( !font ) return;
 
@@ -363,12 +363,12 @@ void rainbow( void )
 
 	for ( int l = 0 ; l < 160 ; ++l )
 	{
-		g = HDIV_Div( 64 * l, 160 );
+		g = 64 * l / 160;
 
 		for ( int c = 0 ; c < 80 ; ++c )
 		{
-			r = HDIV_Div( 32 * c, 80 );
-			b = HDIV_Div( 32 * ( c + l ), 240 ) ^ 0x1F;
+			r = 32 * c / 80;
+			b = ( 32 * ( c + l ) / 240 ) ^ 0x1F;
 
 			uint32_t c = b << 11 | g << 5 | r;
 			send_data_word( c );
@@ -385,7 +385,7 @@ void rainbow( void )
 
 static uint8_t startup_task_id;
 
-void startup_task( uint32_t step )
+static void startup_task( uint32_t step )
 {
 	switch ( step )
 	{
@@ -407,19 +407,19 @@ void startup_task( uint32_t step )
 		case 3:
 			Init();
 			TMDestroyTask( startup_task_id );
-			SetDisplayStatus( DISPLAY_ON );
+			DMSetStatus( DISPLAY_ON );
 			break;
 	}
 }
 
-void Startup( void )
+static void Startup( void )
 {
 	if ( startup_task_id )
 	{
 		TMDestroyTask( startup_task_id );
 	}
 
-	SetDisplayStatus( DISPLAY_OFF );
+	DMSetStatus( DISPLAY_OFF );
 	TMCreateTask( 0, startup_task, 0, 1, 120, &startup_task_id );
 }
 

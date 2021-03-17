@@ -13,7 +13,6 @@ void StartupDevices( void )
 	ConfigureADC();
 	ConfigurePWM1();
 	ConfigureSPI0();
-	ConfigureHDIV();
 }
 
 
@@ -71,9 +70,7 @@ int main( void )
 	EMStartup();
 	BMStartup();
 	SMStartup();
-
-	SetDisplay( &ST7735S );
-	display->Startup();
+	DMStartup();
 
 	while ( 1 )
 	{

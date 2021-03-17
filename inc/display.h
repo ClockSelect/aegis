@@ -30,14 +30,12 @@ typedef struct display
 	void	(*CLS)( void );
 	void	(*SetBrightness)( uint32_t b );
 	void	(*SetFont)( const font_t* );
-	void	(*Print)( const char*, const rect_t* );
+	void	(*Print)( const char*, const rect_t*, unsigned align );
 }
 display_t;
 
 
 extern const display_t *display;
-
-
 extern const display_t ST7735S;
 
 extern DISPLAY_STATUS	display_status;
@@ -45,9 +43,12 @@ extern DISPLAY_STATUS	display_status;
 extern uint16_t fgcolor;
 extern uint16_t bgcolor;
 
-extern void	SetDisplay( const display_t *d );
-extern void	SetDisplayStatus( uint32_t status );
-extern DISPLAY_STATUS GetDisplayStatus( void );
+
+extern void	DMStartup();
+extern void	DMSetStatus( DISPLAY_STATUS status );
+extern DISPLAY_STATUS DMGetStatus();
+
 extern void	FormatNumber( char *str, uint32_t num, int nbdig, int nbdec, int exp );
+
 
 #endif /* __DISPLAY_H__ */

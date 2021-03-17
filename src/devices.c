@@ -210,12 +210,6 @@ void ConfigureADC()
 }
 
 
-void ConfigureHDIV()
-{
-	CLK_EnableModuleClock( HDIV_MODULE );
-}
-
-
 uint32_t ADCSample( uint32_t ch, int count )
 {
 	uint32_t sample;
@@ -231,6 +225,6 @@ uint32_t ADCSample( uint32_t ch, int count )
 		sample += ADC_GET_CONVERSION_DATA( ADC, ch );
 	}
 
-	sample = HDIV_Div( sample, count );
+	sample = sample / count;
 	return sample;
 }

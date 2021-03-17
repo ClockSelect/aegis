@@ -64,6 +64,8 @@ void SystemInit( void )
 	SYS_UnlockReg();
 	SYS_DISABLE_POR();
 
+	CLK_EnableModuleClock( HDIV_MODULE );
+
 	CLK_EnableXtalRC( CLK_PWRCTL_HIRCEN_Msk );
 	CLK_WaitClockReady( CLK_STATUS_HIRCSTB_Msk );
 	CLK_SetHCLK( CLK_CLKSEL0_HCLKSEL_HIRC, CLK_CLKDIV0_HCLK(1) );

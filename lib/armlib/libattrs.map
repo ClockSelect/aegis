@@ -1,0 +1,44 @@
+# libattrs.map
+#
+# This file defines the mapping from library names to the
+# attributes assumed for that library by the linker. It is for
+# internal use only. Modification by users is likely to produce
+# unanticipated results.
+#
+# Copyright 2004 ARM Limited. All rights reserved.
+#
+# RCS $Revision$
+# Checkin $Date$
+# Revising $Author$
+
+# Attributes in the library suffix.
+*_4*.*         $IEEE1$ARM_ISAv4
+*_t*.*         $IEEE1$ARM_ISAv4$THUMB_ISAv1
+*_5*.*         $IEEE1$ARM_ISAv5$THUMB_ISAv1
+*_w*.*         $IEEE1$THUMB_ISAv4$D
+*_p*.*         $IEEE1$THM_ISAv3M
+*_2*.*         $IEEE1$THUMB_ISAv4$ARM_ISAv7
+*_8*.*         $IEEE1$ARM_ISAv8$THUMB_ISAv5$DE$MPE$B$J$K
+*_o*.*         $IEEE1$A64_ISAv8
+*_*e*.*        $IEEE1$RWPI
+*_*f*.*        $IEEE1$~SHL$FPIC
+*_*s*.*        $IEEE1$PE
+*_*v*.*        $IEEE1$VFPv1
+*_*m*.*        $IEEE1$VFPi1$EXTD16$VFPS
+*_*n*.*        $IEEE1$ENUMINT
+*_*u*.*        $IEEE1$WCHAR32
+*_r*.*         $IEEE1$A64_ISAv8$SIGN_RET_ADDR
+*_a*.*         $IEEE1$A64_ISAv8$SIGN_RET_ADDR$TAGGED_STACK
+
+# Sets of library prefixes which denote the same library set and
+# vary the attributes.
+fz_*           $IEEE1$STANDARDLIB
+g_*            $IEEE1$STANDARDLIB$IEEEX  fz
+f_*            $IEEE1$STANDARDLIB$IEEEF  fz
+fj_*           $IEEE1$STANDARDLIB$IEEEJ  fz
+mf_*           $IEEE1$MICROLIB           fz
+
+c2_*           $IEEE1$STANDARDLIB
+c_*            $IEEE1$STANDARDLIB
+mc_*           $IEEE1$MICROLIB           c
+

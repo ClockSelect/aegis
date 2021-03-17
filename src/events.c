@@ -13,11 +13,11 @@ static uint8_t	embuffer[ 20 * sizeof( Event_t ) ];
 // For debugging pruposes
 static void PrintEvent( const Event_t *ev )
 {
-	if ( GetDisplayStatus() != DISPLAY_ON ) return;
+	if ( DMGetStatus() != DISPLAY_ON ) return;
 	rect_t r = { 11, 150, 79, 159 };
 	char buf[12];
 	snprintf( buf, sizeof( buf ), "%02X %02X %02X %02X", ev->type, ev->k, ev->p1, ev->p2 );
-	display->Print( buf, &r );
+	display->Print( buf, &r, 0 );
 }
 
 

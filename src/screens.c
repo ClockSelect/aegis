@@ -139,7 +139,7 @@ void SMShowScreen( SCREENID sid )
 //------------------------------------------------------------------------------
 void SMRefresh( void )
 {
-	if ( GetDisplayStatus() != DISPLAY_ON ) return;
+	if ( DMGetStatus() != DISPLAY_ON ) return;
 
 	uint32_t t = GetSysTick();
 
