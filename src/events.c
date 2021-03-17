@@ -92,6 +92,7 @@ int EMGetNextEvent( Event_t *ev )
 
 static void EMKeyEvent( Event_t *ev );
 static void EMDisplayEvent( Event_t *ev );
+static void EMHardwareEvent( Event_t *ev );
 
 
 void EMHandleEvents()
@@ -116,6 +117,10 @@ void EMHandleEvents()
 
 			case EVENT_DISPLAY:
 				EMDisplayEvent( &ev );
+				break;
+
+			case EVENT_HARDWARE:
+				EMHardwareEvent( &ev );
 				break;
 
 			case EVENT_NULL:
@@ -186,3 +191,18 @@ static void EMDisplayEvent( Event_t *ev )
 			break;
 	}
 }
+
+
+static void EMHardwareEvent( Event_t *ev )
+{
+	switch ( ev->h )
+	{
+		case EV_H_BATT_STATUS:
+			break;
+
+		case EV_H_NULL:
+		default:
+			break;
+	}
+}
+

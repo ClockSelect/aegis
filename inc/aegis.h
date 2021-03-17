@@ -23,9 +23,10 @@
 // delivered by the ADC with accurate voltmeter measures to find out the
 // exact values needed for his specific box.
 //------------------------------------------------------------------------------
-#define BVO_CELL1	(+40)
-#define BVO_CELL2	(-65)
-#define BVO_USB		(+365)
+#define BVO_CELL1	(+70)	//	(+40)
+#define BVO_CELL2	(+45)	//	(-65)
+#define BVO_USB		(+200)
+#define BVO_PF4		(+400)
 
 
 //------------------------------------------------------------------------------
@@ -45,6 +46,7 @@ typedef enum eEvent
 	EVENT_NULL = 0,			// Null event
 	EVENT_KEY,				// Key input event
 	EVENT_DISPLAY,			// Display event
+	EVENT_HARDWARE,			// Hardware event (battery, ato, usb...)
 	EVENT_MAX				// Total number of event types
 }
 Event_e;
@@ -73,6 +75,13 @@ typedef enum eEV_D
 }
 EV_D_e;
 
+typedef enum eEV_H
+{
+	EV_H_NULL = 0,
+	EV_H_BATT_STATUS		// Battery status change
+}
+EV_H_e;
+
 
 //------------------------------------------------------------------------------
 //	Event structure
@@ -91,6 +100,7 @@ typedef struct sEvent
 	union {
 		EV_K_e	k;
 		EV_D_e	d;
+		EV_H_e	h;
 		uint8_t	id;
 	};
 	uint8_t	p1;
@@ -199,10 +209,20 @@ extern int	SMInputEvent( Event_t *ev );
 //	Battery Management
 //------------------------------------------------------------------------------
 
+typedef enum eBattStatus
+{
+	BATT_OK = 0,
+	BATT_LOW,
+	BATT_UNK
+}
+BATT_STATUS;
+
 extern void	BMStartup( void );
 extern void BMUpdateBattery( void );
 extern void BMReadBattery( void );
 extern void BMGetCells( uint32_t *v1, uint32_t *v2 );
+extern void BMUpdateStatus( void );
+extern BATT_STATUS BMGetStatus( void );
 
 
 //------------------------------------------------------------------------------

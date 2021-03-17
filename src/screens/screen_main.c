@@ -38,12 +38,18 @@ extern int	ScrMainRefresh( void )
 		BMGetCells( &vbat1, &vbat2 );
 
 		FormatNumber( buf, vbat1, 4, 3, 3 );
-		r.left = 9;
 		display->Print( buf, &r );
 
 		FormatNumber( buf, vbat2, 4, 3, 3 );
-		r.left = 44;
+		r.left = 33;
 		display->Print( buf, &r );
+
+		BATT_STATUS bs = BMGetStatus();
+		if ( bs != BATT_UNK )
+		{
+			r.left = 66;
+			display->Print( bs == BATT_OK ? "OK" : "LO" , &r );
+		}
 	}
 
 	return 1;

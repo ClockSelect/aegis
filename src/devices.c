@@ -148,8 +148,9 @@ void ConfigureGPIO( void )
 	PF1  = 0;
 	PF2  = 0;
 	PF3  = 0;
-	PF4  = 1;
 	PF7  = 0;
+
+	PF4  = 0;
 }
 
 

@@ -322,6 +322,20 @@ static const uint8_t simple_font_x48[] =
 	0b00000000
 };
 
+static const uint8_t simple_font_x4B[] =
+{
+	0b00000000,
+	0b10000100,
+	0b10001000,
+	0b10010000,
+	0b10110000,
+	0b11010000,
+	0b10001000,
+	0b10001000,
+	0b10000100,
+	0b00000000
+};
+
 static const uint8_t simple_font_x4C[] =
 {
 	0b00000000,
@@ -414,7 +428,7 @@ static const font_chardesc_t simple_font_chars_3[] =
 	{ 7, simple_font_x48 },
 	{ 0, 0 },
 	{ 0, 0 },
-	{ 0, 0 },
+	{ 6, simple_font_x4B },
 	{ 6, simple_font_x4C },
 	{ 0, 0 },
 	{ 0, 0 },
