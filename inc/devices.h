@@ -12,6 +12,12 @@
 #define ADC_CH_COIL_VOLT	15
 
 
+#define PWM_CH_BCH				5
+#define PWM_CH_BCH_MASK			(1<<PWM_CH_BCH)
+#define PWM_BCH_CNTTYPE_Pos		(PWM_CH_BCH<<1)
+#define PWM_BCH_CNTTYPE_Msk		(3<<PWM_BCH_CNTTYPE_Pos)
+
+
 #define PWM_CH_LCD				2
 #define PWM_CH_LCD_MASK			(1<<PWM_CH_LCD)
 #define PWM_LCD_CNTTYPE_Pos		(PWM_CH_LCD<<1)
@@ -35,9 +41,16 @@
 extern void ConfigurePins( void );
 extern void ConfigureGPIO( void );
 extern void ConfigureSPI0( void );
+extern void ConfigurePWM0( void );
 extern void ConfigurePWM1( void );
 extern void ConfigureADC( void );
 extern void ConfigureHDIV( void );
+
+extern void DisableSPI0( void );
+extern void DisablePWM0( void );
+extern void DisablePWM1( void );
+extern void DisableADC( void );
+extern void DisableHDIV( void );
 
 extern uint32_t ADCSample( uint32_t ch, int count );
 

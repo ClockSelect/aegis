@@ -240,13 +240,17 @@ Events
  3	 9			Fire (VPC) (Start)
  3	10			Fire (VPC)
  3	11	0/1		Choose Old/New Coil
+ 3	12			
  3	13			Start Fire 3 (Test Coil)
  3	14			Start Fire 4 (Still Testing Coil)
  3	15			Test Atomizer
 
+ 4	 1			Overtemp (?)
  4	 2			Overtemp
  4	 3			Battery Low
  4	 4			Brown-Out
+ 4	 5			Cut-Off
+ 4	 6			No Liquid
 
  5	 1			Screen Change
  5	 3			Battery Low State Change
@@ -256,11 +260,12 @@ Events
  5	 7	NS	OS	Box State Change
 
  6	 1			Shutdown
+ 6	 2			
  6	 3			Go To Sleep
  6	 4	NS		Change Box State
  6	 5			Dimm Screen
  6	 6			
- 6	 7			
+ 6	 7			Activity
 
  9	 1			
  9	 2			

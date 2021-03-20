@@ -98,7 +98,18 @@ static uint16_t drawing_color;
 static const font_t *font;
 
 
-static int send_bytes( uint8_t *bytes, uint32_t len, uint32_t timeout )
+static FINLINE void begin_send_data()
+{
+	DISP_CSX = 0;
+	DISP_DCX = 1;
+}
+
+static FINLINE void end_send_data()
+{
+	DISP_CSX = 1;
+}
+
+static int send_bytes( void *bytes, uint32_t len, uint32_t timeout )
 {
 	int r = 0;
 	uint32_t start_tick = GetSysTick();
@@ -113,7 +124,7 @@ static int send_bytes( uint8_t *bytes, uint32_t len, uint32_t timeout )
 				break;
 			}
 		}
-		SPI_WRITE_TX( SPI0, *bytes++ );
+		SPI_WRITE_TX( SPI0, *(uint8_t*)bytes++ );
 		--len;
 	}
 	while ( SPI_IS_BUSY( SPI0 ) )
@@ -189,6 +200,11 @@ static void fill_rect( rect_t *r )
 
 static void StartBacklightDriver( void )
 {
+	SYS->GPA_MFPL = SYS->GPA_MFPL
+		&  ~SYS_GPA_MFPL_PA3MFP_Msk
+		|	SYS_GPA_MFPL_PA3MFP_PWM1_CH2
+		;
+
 	PWM_EnableOutput( PWM1, PWM_CH_2_MASK );
 	PWM_Start( PWM1, PWM_CH_2_MASK );
 }
@@ -197,23 +213,35 @@ static void StopBacklightDriver( void )
 {
 	PWM_SET_CMR( PWM1, 2, 0 );
 	PWM_Stop( PWM1, PWM_CH_2_MASK );
+
+	SYS->GPA_MFPL = SYS->GPA_MFPL
+		&  ~SYS_GPA_MFPL_PA3MFP_Msk
+		|	SYS_GPA_MFPL_PA3MFP_GPIO
+		;
+	GPIO_SetMode( PA, GPIO_PIN_PIN3_Msk, GPIO_MODE_OUTPUT );
+	PA3 = 0;
 }
 
 static void Open( void )
 {
+	PD2 = 1;
+	PB1 = 0;
+
 	DISP_CSX = 1;
 	DISP_DCX = 1;
 	SPI_ENABLE( SPI0 );
+
 	StartBacklightDriver();
-	PD2 = 1;
-	PB1 = 0;
 }
 
 static void Close( void )
 {
-	SPI_DISABLE( SPI0 );
 	StopBacklightDriver();
 	PD2 = 0;
+
+	SPI_DISABLE( SPI0 );
+	DISP_CSX = 0;
+	DISP_DCX = 0;
 }
 
 static void Sleep( void )
@@ -324,16 +352,23 @@ static int draw_char( const uint16_t c, int x, int y )
 
 	const uint8_t *bitmap = chardesc->bitmap;
 
+	uint16_t fg = ( fgcolor << 8 ) | ( fgcolor >> 8 );
+	uint16_t bg = ( bgcolor << 8 ) | ( bgcolor >> 8 );
+
+	begin_send_data();
+
 	uint8_t bits;
 	while ( ch-- )
 	{
 		for ( int i = 0 ; i < cw ; ++i )
 		{
 			if ( !( i & 0x7 ) ) bits = *bitmap++;
-			send_data_word( bits >> 7 ? fgcolor : bgcolor );
+			send_bytes( bits >> 7 ? &fg : &bg, sizeof( uint16_t ), 2 );
 			bits <<= 1;
 		}
 	}
+
+	end_send_data();
 
 	return cw;
 }
@@ -424,9 +459,18 @@ static void Startup( void )
 }
 
 
+static void Shutdown( void )
+{
+	DMSetStatus( DISPLAY_OFF );
+	Close();
+	PC2 = 0;
+}
+
+
 const display_t ST7735S =
 {
 	Startup,
+	Shutdown,
 	Sleep,
 	Wakeup,
 	SetColor,

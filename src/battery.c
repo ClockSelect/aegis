@@ -30,6 +30,12 @@ void BMStartup( void )
 }
 
 
+void BMShutdown( void )
+{
+	battery.status = BATT_UNK;
+}
+
+
 void BMUpdateBattery( void )
 {
 	static uint32_t last = 0;

@@ -7,12 +7,10 @@
 // for the Aegis Legend firmware.
 //==============================================================================
 
-#include <NUC1261.h>
+#define FINLINE __attribute__((always_inline))
 
-#include "printf.h"
-#include "devices.h"
-#include "font.h"
-#include "display.h"
+#include <NUC1261.h>
+#include <stddef.h>
 
 
 //------------------------------------------------------------------------------
@@ -38,6 +36,15 @@
 
 
 //------------------------------------------------------------------------------
+// Tick counter
+//------------------------------------------------------------------------------
+extern volatile uint32_t TickCounter;
+static FINLINE uint32_t GetSysTick( void ) { return TickCounter; };
+
+
+//==============================================================================
+//	Event Management
+//------------------------------------------------------------------------------
 //	Events constants
 //------------------------------------------------------------------------------
 
@@ -47,6 +54,7 @@ typedef enum eEvent
 	EVENT_KEY,				// Key input event
 	EVENT_DISPLAY,			// Display event
 	EVENT_HARDWARE,			// Hardware event (battery, ato, usb...)
+	EVENT_BOX,				// General box event (lock, sleep...)
 	EVENT_MAX				// Total number of event types
 }
 Event_e;
@@ -71,17 +79,26 @@ typedef enum eEV_D
 	EV_D_NULL = 0,
 	EV_D_DISPLAY_STATUS,	// Display on/off/sleep
 	EV_D_SCREEN,			// Invoke screen
-	EV_D_BRIGHTNESS			// Set screen brightness
+	EV_D_BRIGHTNESS,		// Set screen brightness
+	EV_D_DIMMER				// Dimm screen
 }
 EV_D_e;
 
 typedef enum eEV_H
 {
 	EV_H_NULL = 0,
-	EV_H_BATT_STATUS		// Battery status change
+	EV_H_BATT_STATUS,		// Battery status change
+	EV_H_USB_PLUG			// USB Plugged / Unplugged
 }
 EV_H_e;
 
+typedef enum eEV_B
+{
+	EV_B_NULL = 0,
+	EV_B_STATE_CHANGE,		// Change box state
+	EV_B_SLEEP				// Go to sleep
+}
+EV_B_e;
 
 //------------------------------------------------------------------------------
 //	Event structure
@@ -101,6 +118,7 @@ typedef struct sEvent
 		EV_K_e	k;
 		EV_D_e	d;
 		EV_H_e	h;
+		EV_B_e	b;
 		uint8_t	id;
 	};
 	uint8_t	p1;
@@ -137,7 +155,7 @@ extern int	EMGetNextEvent( Event_t *ev );
 extern void	EMHandleEvents();
 
 
-//------------------------------------------------------------------------------
+//==============================================================================
 //	System miscs
 //------------------------------------------------------------------------------
 
@@ -180,21 +198,23 @@ extern void	TMUpdateTask( uint8_t id, uint32_t param, uint32_t delay );
 extern void	TMExecTasks();
 
 
-//------------------------------------------------------------------------------
+//==============================================================================
 //	User inputs
 //------------------------------------------------------------------------------
 
 extern void ReadUserInputs( void );
 
 
-//------------------------------------------------------------------------------
+//==============================================================================
 //	Screen Management
 //------------------------------------------------------------------------------
 
 typedef enum eScreenId
 {
-	SCREEN_OFF = 0,
-	SCREEN_MAIN
+	SCREEN_NONE = -1,
+	SCREEN_OFF,
+	SCREEN_MAIN,
+	SCREEN_IDLE
 }
 SCREENID;
 
@@ -205,7 +225,7 @@ extern void	SMRefresh( void );
 extern int	SMInputEvent( Event_t *ev );
 
 
-//------------------------------------------------------------------------------
+//==============================================================================
 //	Battery Management
 //------------------------------------------------------------------------------
 
@@ -225,7 +245,55 @@ extern void BMUpdateStatus( void );
 extern BATT_STATUS BMGetStatus( void );
 
 
+//==============================================================================
+//	USB
 //------------------------------------------------------------------------------
+
+typedef enum eUSBStatus
+{
+	USB_UNK = 0,
+	USB_PLUGGED,
+	USB_UNPLUGGED
+}
+USB_STATUS;
+
+extern void	TestUSBPlug( void );
+extern int	IsUSBPlugged( void );
+
+
+//==============================================================================
+//	Box Management
+//------------------------------------------------------------------------------
+
+#define BOX_ACT_Pos	(0)
+#define BOX_ACT_Msk	(0xF<<BOX_ACT_Pos)
+#define BOX_LCK_Pos (4)
+#define BOX_LCK_Msk (0xF<<BOX_LCK_Pos)
+
+#define BOX_STARTUP	(0x0<<BOX_ACT_Pos)
+#define BOX_ON		(0x1<<BOX_ACT_Pos)
+#define BOX_OFF		(0x2<<BOX_ACT_Pos)
+#define BOX_LOWBAT	(0x3<<BOX_ACT_Pos)
+
+#define BOX_ACTIVE	(0x0<<BOX_LCK_Pos)
+#define BOX_IDLE	(0x1<<BOX_LCK_Pos)
+#define BOX_LOCKED	(0x2<<BOX_LCK_Pos)
+
+typedef uint8_t BOX_STATE;
+
+extern void	BXStartup( void );
+extern void	BXCheckActivity( void );
+extern void	BXEvent( Event_t *ev );
+
+extern BOX_STATE bx_box_state;
+static FINLINE BOX_STATE BXGetState() { return bx_box_state; }
+
+extern uint32_t bx_last_activity;
+static FINLINE void	BXUserActivity() { bx_last_activity = GetSysTick(); }
+static FINLINE uint32_t	BXLastActivity() { return bx_last_activity; }
+
+
+//==============================================================================
 //	Timings (in ticks) (1 tick = 1ms)
 //------------------------------------------------------------------------------
 
@@ -235,19 +303,31 @@ extern BATT_STATUS BMGetStatus( void );
 #define TI_KEY_REPEAT		50		// Key repeat period
 #define TI_SEQUENCE_TIMEOUT	500		// Max interval between keys in a sequence
 #define TI_UPDATE_BATTERY	10		// Battery sampling interval
+#define TI_DIMMING			8000	// Time before screen dimming
+#define TI_IDLE				15000	// Time before entering idle mode
+#define TI_SLEEP			180000	// Time before entering sleep mode
+#define TI_BOX_ACTCHECK		5		// Check box activity interval
 
 
 //==============================================================================
 // Miscs Externs & Prototypes
 //------------------------------------------------------------------------------
 
-extern volatile uint32_t TickCounter;
-static inline uint32_t GetSysTick( void ) { return TickCounter; };
 extern void WaitTicks( uint32_t ticks );
 extern void WaitUs( uint32_t us );
 extern void ResetChip( int );
 
 extern uint32_t isqrt( uint32_t );
+
+
+//==============================================================================
+// Other headers
+//------------------------------------------------------------------------------
+
+#include "printf.h"
+#include "devices.h"
+#include "font.h"
+#include "display.h"
 
 
 //==============================================================================

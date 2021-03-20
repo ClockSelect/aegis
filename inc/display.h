@@ -23,6 +23,7 @@ DISPLAY_STATUS;
 typedef struct display
 {
 	void	(*Startup)( void );
+	void	(*Shutdown)( void );
 	void	(*Sleep)( void );
 	void	(*Wakeup)( void );
 	void	(*SetColor)( uint32_t rgb );
@@ -44,9 +45,13 @@ extern uint16_t fgcolor;
 extern uint16_t bgcolor;
 
 
-extern void	DMStartup();
+extern void	DMStartup( void );
+extern void DMShutdown( void );
 extern void	DMSetStatus( DISPLAY_STATUS status );
 extern DISPLAY_STATUS DMGetStatus();
+extern void DMSetBrightness( uint8_t b );
+extern void DMDimmer( void );
+extern void DMEvent( Event_t *ev );
 
 extern void	FormatNumber( char *str, uint32_t num, int nbdig, int nbdec, int exp );
 

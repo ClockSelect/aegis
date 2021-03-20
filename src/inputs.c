@@ -398,3 +398,49 @@ void ReadUserInputs()
 		DetectSequence();
 	}
 }
+
+
+//------------------------------------------------------------------------------
+// USB Plug in/out detection
+//------------------------------------------------------------------------------
+static USB_STATUS USB_status = USB_UNK;
+
+void TestUSBPlug( void )
+{
+	USB_STATUS old = USB_status;
+	static uint32_t last = 0;
+	uint32_t t = GetSysTick();
+
+	int count = 6;
+
+	switch ( old )
+	{
+		case USB_UNK:
+			while ( --count ) if ( !PE0 ) break;
+			USB_status = count ? USB_UNPLUGGED : USB_PLUGGED;
+			break;
+
+		case USB_PLUGGED:
+			while ( --count ) if ( PE0 ) break;
+			if ( count ) last = t;
+			else if ( t - last > 250 ) USB_status = USB_UNPLUGGED;
+			break;
+
+		case USB_UNPLUGGED:
+			while ( --count ) if ( !PE0 ) break;
+			if ( count ) last = t;
+			else if ( t - last > 250 ) USB_status = USB_PLUGGED;
+			break;
+	}
+
+	if ( USB_status != old )
+	{
+		last = t;
+		EMSendEvent1P( EVENT_HARDWARE, EV_H_USB_PLUG, USB_status );
+	}
+}
+
+int IsUSBPlugged( void )
+{
+	return ( USB_status == USB_PLUGGED );
+}

@@ -13,6 +13,7 @@ DISPLAY_STATUS display_status = DISPLAY_OFF;
 
 uint16_t	fgcolor;
 uint16_t	bgcolor;
+uint8_t		brightness;
 
 
 //------------------------------------------------------------------------------
@@ -20,15 +21,21 @@ uint16_t	bgcolor;
 //------------------------------------------------------------------------------
 // Initializes the display global variable and calls the startup process.
 //------------------------------------------------------------------------------
-void DMStartup()
+void DMStartup( void )
 {
 	display = &ST7735S;
 	display->Startup();
 }
 
 
+void DMShutdown( void )
+{
+	display->Shutdown();
+}
+
+
 //------------------------------------------------------------------------------
-// Display status change
+// Display status
 //------------------------------------------------------------------------------
 void DMSetStatus( DISPLAY_STATUS status )
 {
@@ -44,9 +51,62 @@ DISPLAY_STATUS DMGetStatus( void )
 
 
 //------------------------------------------------------------------------------
+// Brightness
+//------------------------------------------------------------------------------
+void DMSetBrightness( uint8_t b )
+{
+	if ( b > 100 ) b = 100;
+	brightness = b;
+	display->SetBrightness( b );
+}
+
+
+void DMDimmer( void )
+{
+}
+
+
+//------------------------------------------------------------------------------
+// Event Management
+//------------------------------------------------------------------------------
+void DMEvent( Event_t *ev )
+{
+	switch ( ev->d )
+	{
+		case EV_D_DISPLAY_STATUS:
+		{
+			switch ( ev->p1 )
+			{
+				case DISPLAY_ON:
+					DELAYED_EVENT( 1, EVENT_DISPLAY, EV_D_BRIGHTNESS, 25, 0 );
+					break;
+			}
+			break;
+		}
+
+		case EV_D_SCREEN:
+		{
+			SMShowScreen( ev->p1 );
+			break;
+		}
+
+		case EV_D_BRIGHTNESS:
+		{
+			DMSetBrightness( ev->p1 );
+			break;
+		}
+
+		case EV_D_NULL:
+		default:
+			break;
+	}
+}
+
+
+//------------------------------------------------------------------------------
 // Number formatting
 //------------------------------------------------------------------------------
-//	- str:		Output buffer. Nust be large enough (nbdig+2).
+//	- str:		Output buffer. Must be large enough (nbdig+2).
 //	- num:		The number.
 //	- nbdig:	Maximum number of output digits.
 //	- nbdec:	Maximum number of decimal places.

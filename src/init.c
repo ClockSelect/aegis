@@ -64,6 +64,10 @@ void SystemInit( void )
 	SYS_UnlockReg();
 	SYS_DISABLE_POR();
 
+	/*	HDIV module has to be enabled right away because the CLK_SetHCLK function
+		makes call to SystemCoreClockUpdate, wich makes use of division.
+		This is only mandatory if the firmware is linked with the hardware divider
+		eabi library. */
 	CLK_EnableModuleClock( HDIV_MODULE );
 
 	CLK_EnableXtalRC( CLK_PWRCTL_HIRCEN_Msk );

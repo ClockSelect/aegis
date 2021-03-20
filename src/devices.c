@@ -79,7 +79,7 @@ void ConfigureGPIO( void )
 
 	GPIO_SET_OUT_DATA( PA, 0 );
 
-	PA0  = 1;
+	PA0  = 0;
 
 	GPIO_SetMode( PB,
 		GPIO_PIN_PIN1_Msk|GPIO_PIN_PIN2_Msk,
@@ -88,7 +88,7 @@ void ConfigureGPIO( void )
 	GPIO_SET_OUT_DATA( PB, 0 );
 
 	PB1  = 0;
-	PB2  = 1;
+	PB2  = 0;
 
 	GPIO_SetMode( PC,
 		GPIO_PIN_PIN1_Msk|GPIO_PIN_PIN2_Msk|GPIO_PIN_PIN4_Msk,
@@ -139,8 +139,12 @@ void ConfigureGPIO( void )
 	PE13 = 1;
 
 	GPIO_SetMode( PF, 
-		GPIO_PIN_PIN0_Msk|GPIO_PIN_PIN1_Msk|GPIO_PIN_PIN2_Msk|GPIO_PIN_PIN3_Msk|GPIO_PIN_PIN4_Msk|GPIO_PIN_PIN7_Msk, 
+		GPIO_PIN_PIN0_Msk|GPIO_PIN_PIN1_Msk|GPIO_PIN_PIN2_Msk|GPIO_PIN_PIN3_Msk|GPIO_PIN_PIN4_Msk|GPIO_PIN_PIN7_Msk,
 		GPIO_MODE_OUTPUT );
+
+	GPIO_SetMode( PF, 
+		GPIO_PIN_PIN5_Msk|GPIO_PIN_PIN6_Msk,
+		GPIO_MODE_INPUT );
 
 	GPIO_SET_OUT_DATA( PF, 0 );
 
@@ -154,6 +158,12 @@ void ConfigureGPIO( void )
 }
 
 
+void DisableHDIV()
+{
+	CLK_DisableModuleClock( HDIV_MODULE );
+}
+
+
 void ConfigureSPI0( void )
 {
 	CLK_EnableModuleClock( SPI0_MODULE );
@@ -161,8 +171,42 @@ void ConfigureSPI0( void )
 
 	NVIC_DisableIRQ( SPI0_IRQn );
 
-	SPI_Open( SPI0, SPI_MASTER, SPI_MODE_0, 8, 14400000 );
+	SPI_Open( SPI0, SPI_MASTER, SPI_MODE_0, 8, 29000000 /* PLL÷5 = 28753920 */ );
 	SPI_DisableAutoSS( SPI0 );
+}
+
+
+void DisableSPI0()
+{
+	SPI_Close( SPI0 );
+	SPI_DISABLE( SPI0 );
+	CLK_DisableModuleClock( SPI0_MODULE );
+	NVIC_DisableIRQ( SPI0_IRQn );
+	PC0 = 0;
+	PC3 = 0;
+}
+
+
+void ConfigurePWM0( void )
+{
+	CLK_EnableModuleClock( PWM0_MODULE );
+	CLK_SetModuleClock( PWM0_MODULE, CLK_CLKSEL1_PWM0SEL_PLL , 0 );
+
+	NVIC_DisableIRQ( PWM0_IRQn );
+
+	PWM0->CTL1 = PWM0->CTL1
+		& ~( PWM_BCH_CNTTYPE_Msk )
+		|  ( PWM_UP_COUNTER << PWM_BCH_CNTTYPE_Pos )
+	;
+
+	PWM_SET_OUTPUT_LEVEL( PWM0,
+		PWM_CH_BCH_MASK,
+		PWM_OUTPUT_HIGH, PWM_OUTPUT_LOW, PWM_OUTPUT_NOTHING, PWM_OUTPUT_NOTHING
+	);
+
+	PWM_SET_PRESCALER( PWM0, PWM_CH_BCH, 2 );
+	PWM_SET_CNR( PWM0, PWM_CH_BCH, 199 );
+	PWM_SET_CMR( PWM0, PWM_CH_BCH, 0 );
 }
 
 
@@ -193,9 +237,34 @@ void ConfigurePWM1( void )
 	PWM_SET_CNR( PWM1, PWM_CH_BUCK, 199 );
 	PWM_SET_CMR( PWM1, PWM_CH_BUCK, 200 );
 
-	PWM_SET_PRESCALER( PWM1, PWM_CH_LCD, 2 );
+	// Original firmware sets the LCD prescaler to 2,
+	// but since the LCD and the boost PWM share the same prescaler,
+	// this resets the boost prescaler to 2 also instead of 5.
+	// This is a hardware design flaw.
+	// The best we can do is keeping the prescaler at 5 for the LCD,
+	// wich works fine.
+
+//	PWM_SET_PRESCALER( PWM1, PWM_CH_LCD, 2 );
 	PWM_SET_CNR( PWM1, PWM_CH_LCD, 99 );
 	PWM_SET_CMR( PWM1, PWM_CH_LCD, 0 );
+}
+
+
+void DisablePWM0()
+{
+	PWM_DisableOutput( PWM0, PWM_CH_BCH_MASK );
+	PWM_ForceStop( PWM0, PWM_CH_BCH_MASK );
+	CLK_DisableModuleClock( PWM0_MODULE );
+	NVIC_DisableIRQ( PWM0_IRQn );
+}
+
+
+void DisablePWM1()
+{
+	PWM_DisableOutput( PWM1, PWM_CH_LCD_MASK | PWM_CH_BOOST_MASK | PWM_CH_BUCK_MASK );
+	PWM_ForceStop( PWM1, PWM_CH_LCD_MASK | PWM_CH_BOOST_MASK | PWM_CH_BUCK_MASK );
+	CLK_DisableModuleClock( PWM1_MODULE );
+	NVIC_DisableIRQ( PWM1_IRQn );
 }
 
 
@@ -207,6 +276,15 @@ void ConfigureADC()
 	NVIC_DisableIRQ( ADC_IRQn );
 
 	ADC_POWER_ON( ADC );
+}
+
+
+void DisableADC()
+{
+	ADC_Close( ADC );
+	ADC_POWER_DOWN( ADC );
+	CLK_DisableModuleClock( ADC_MODULE );
+	NVIC_DisableIRQ( ADC_IRQn );
 }
 
 

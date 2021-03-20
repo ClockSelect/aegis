@@ -21,12 +21,18 @@ static void PrintEvent( const Event_t *ev )
 }
 
 
+//------------------------------------------------------------------------------
+// Initialization
+//------------------------------------------------------------------------------
 void EMStartup()
 {
 	emrbid = RBAlloc( embuffer, sizeof( embuffer ), sizeof( Event_t ) );
 }
 
 
+//------------------------------------------------------------------------------
+// Messaging
+//------------------------------------------------------------------------------
 int EMSendEvent( const Event_t *ev )
 {
 	return RBSendMessage( emrbid, ev );
@@ -85,7 +91,6 @@ int EMGetNextEvent( Event_t *ev )
 }
 
 
-
 //==============================================================================
 // Event handling
 //==============================================================================
@@ -116,11 +121,15 @@ void EMHandleEvents()
 				break;
 
 			case EVENT_DISPLAY:
-				EMDisplayEvent( &ev );
+				DMEvent( &ev );
 				break;
 
 			case EVENT_HARDWARE:
 				EMHardwareEvent( &ev );
+				break;
+
+			case EVENT_BOX:
+				BXEvent( &ev );
 				break;
 
 			case EVENT_NULL:
@@ -136,6 +145,11 @@ void EMHandleEvents()
 
 static void EMKeyEvent( Event_t *ev )
 {
+	BXUserActivity();
+
+	if ( SMInputEvent( ev ) )
+		return;
+
 	switch ( ev->k )
 	{
 		case EV_K_FIRE:
@@ -159,45 +173,14 @@ static void EMKeyEvent( Event_t *ev )
 }
 
 
-static void EMDisplayEvent( Event_t *ev )
-{
-	switch ( ev->d )
-	{
-		case EV_D_DISPLAY_STATUS:
-		{
-			switch ( ev->p1 )
-			{
-				case DISPLAY_ON:
-					DELAYED_EVENT( 1, EVENT_DISPLAY, EV_D_BRIGHTNESS, 25, 0 );
-					break;
-			}
-			break;
-		}
-
-		case EV_D_SCREEN:
-		{
-			SMShowScreen( ev->p1 );
-			break;
-		}
-
-		case EV_D_BRIGHTNESS:
-		{
-			display->SetBrightness( ev->p1 );
-			break;
-		}
-
-		case EV_D_NULL:
-		default:
-			break;
-	}
-}
-
-
 static void EMHardwareEvent( Event_t *ev )
 {
 	switch ( ev->h )
 	{
 		case EV_H_BATT_STATUS:
+			break;
+
+		case EV_H_USB_PLUG:
 			break;
 
 		case EV_H_NULL:

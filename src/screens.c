@@ -13,7 +13,6 @@
 //------------------------------------------------------------------------------
 typedef struct screen_desc
 {
-	SCREENID	id;
 	uint8_t		dialog;
 	uint32_t	refresh_rate;
 	uint32_t	duration;
@@ -34,8 +33,8 @@ static int	screen_noev( Event_t *ev ) { return 0; }
 
 static const screen_desc_t screens[] =
 {
+	[SCREEN_OFF] =
 	{
-		SCREEN_OFF,
 		0,
 		0,
 		0,
@@ -45,8 +44,8 @@ static const screen_desc_t screens[] =
 		screen_null,
 		screen_noev
 	},
+	[SCREEN_MAIN] =
 	{
-		SCREEN_MAIN,
 		0,
 		50,
 		0,
@@ -55,6 +54,17 @@ static const screen_desc_t screens[] =
 		ScrMainRefresh,
 		ScrMainClose,
 		ScrMainEvent
+	},
+	[SCREEN_IDLE] =
+	{
+		0,
+		0,
+		0,
+		ScrIdleInit,
+		ScrIdleDraw,
+		screen_null_draw,
+		ScrIdleClose,
+		ScrIdleEvent
 	}
 };
 
@@ -63,15 +73,20 @@ static const screen_desc_t screens[] =
 
 typedef struct screen
 {
-	const screen_desc_t*	s;
+	const screen_desc_t *s;
 	uint32_t	opening_tick;
 	uint32_t	last_refresh;
-	SCREENID	last_screen_id;
+	SCREENID	sid;
+	SCREENID	last_sid;
 }
 screen_t;
 
 
-static screen_t screen;
+static screen_t screen =
+{
+	.sid = SCREEN_NONE,
+	.last_sid = SCREEN_NONE
+};
 
 
 //------------------------------------------------------------------------------
@@ -79,7 +94,7 @@ static screen_t screen;
 //------------------------------------------------------------------------------
 void SMStartup( void )
 {
-	SMScreen( SCREEN_MAIN );
+	SMScreen( SCREEN_OFF );
 }
 
 
@@ -97,40 +112,25 @@ void SMScreen( SCREENID sid )
 //------------------------------------------------------------------------------
 void SMShowScreen( SCREENID sid )
 {
-	const screen_desc_t *s = 0;
+	if ( sid >= NUM_SCREENS ) return;
 
-	for ( int i = 0 ; i < NUM_SCREENS ; ++i )
+	const screen_desc_t *s = &screens[sid];
+
+	if ( screen.s )
 	{
-		if ( screens[i].id == sid )
+		if ( s->dialog )
 		{
-			s = &screens[i];
-			break;
+			if ( !screen.s->dialog )
+				screen.last_sid = screen.sid;
 		}
+
+		screen.s->pf_close();
 	}
 
-	if ( !s ) return;
-
-	if ( s->dialog )
-	{
-		if ( screen.s )
-		{
-			screen.last_screen_id = screen.s->id;
-			screen.s->pf_close();
-		}
-		screen.s = s;
-		screen.s->pf_init();
-		screen.last_refresh = 0;
-	}
-	else
-	{
-		if ( screen.s )
-		{
-			screen.s->pf_close();
-		}
-		screen.s = s;
-		screen.s->pf_init();
-		screen.last_refresh = 0;
-	}
+	screen.s = s;
+	screen.sid = sid;
+	screen.s->pf_init();
+	screen.last_refresh = 0;
 }
 
 
@@ -145,7 +145,7 @@ void SMRefresh( void )
 
 	if ( ( screen.s->duration ) && ( t - screen.opening_tick > screen.s->duration ) )
 	{
-		SMScreen( screen.last_screen_id );
+		SMScreen( screen.last_sid );
 		return;
 	}
 
@@ -171,7 +171,7 @@ void SMRefresh( void )
 //------------------------------------------------------------------------------
 int SMInputEvent( Event_t *ev )
 {
-	return 0;
+	return screen.s->pf_event( ev );
 }
 
 
