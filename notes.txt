@@ -103,7 +103,7 @@ Board Temperature Sensor	( 10000 * CH3 ) / ( 4096 - CH3 )
 
 Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 
- 0	4	Active Modes Bitfield (0x9FF)
+ 0	4	Selectable Modes Bitfield (0x9FF)
  1	4	Flags (Bitfield)
  2	4	Puff Count
  3	4	
@@ -120,7 +120,7 @@ Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 14	2	VPC-P5
 15	2	TC Power Limit
 16	1	Mode (0:TCR,1:Power,2:TC,3:VPC,4:Bypass)
-17	1	Mode Screen (0:Power,1:Ti,2:Ni,3:?(90),4:SS,5:?(92),6:TCR,10:Bypass,11:VPC)
+17	1	Mode Screen (0:Power,1:Ti,2:Ni,3:?(TCR/90),4:SS,5:?(TCR/92),6-8:TCR,9:?(Power),10:Bypass,11-13:VPC,14+:?(TC))
 18	1	Screen Brightness (0..100)
 19	1	Keys Locked
 20	1	
@@ -132,14 +132,14 @@ Config = 0x55AA55AA + Config Data (52) + CRC32( config data )
 26	0	(End of Flash config)
 27	1	1:Idle,2:Measure,3:Fire (?)
 28	2	Puff Time
-29	8	CoilResistance
-30	8	Coil Current
-31	8	Coil Voltage
-32	8	Battery Cell 1	(Idle state)
-33	8	Battery Cell 2	(Idle state)
-34	8	
-35	8	
-36	8	Battery Total	(Idle state)
+29	4	CoilResistance
+30	4	Coil Current
+31	4	Coil Voltage
+32	4	Battery Cell 1	(Idle state)
+33	4	Battery Cell 2	(Idle state)
+34	4	
+35	4	
+36	4	Battery Total	(Idle state)
 37	1	Atomizer Status (0:Unk,1:Low,3:Ok,4:High,5:NoAto)
 38	4	Coil Resistance	(Average of #29)
 39	4	Coil Current	(Average of #30)

@@ -192,10 +192,15 @@ static void fill_rect( rect_t *r )
 	address_rect( r );
 
 	int nbPix = ( r->right - r->left + 1 ) * ( r->bottom - r->top + 1 );
+
+	begin_send_data();
+
 	while ( nbPix-- )
 	{
-		send_data_word( drawing_color );
+		send_bytes( &drawing_color, sizeof( drawing_color ), 2 );
 	}
+
+	end_send_data();
 }
 
 static void StartBacklightDriver( void )
@@ -278,10 +283,11 @@ static void CLS( void )
 
 static uint16_t color_rgb_to_565( uint32_t rgb )
 {
-	return	( rgb	>> 19 &0xF ) << 11
-		|	( rgb >> 10 & 0x1F ) << 5
-		|	( rgb >> 3 & 0xF )
-		;
+	return	  (( rgb >> 10 ) << 13 )
+			| (( rgb >> 19 ) <<  8 )
+			| (( rgb << 24 ) >> 24 )
+			| (( rgb << 16 ) >> 29 )
+			;
 }
 
 static void SetColor( uint32_t rgb )
@@ -352,9 +358,6 @@ static int draw_char( const uint16_t c, int x, int y )
 
 	const uint8_t *bitmap = chardesc->bitmap;
 
-	uint16_t fg = ( fgcolor << 8 ) | ( fgcolor >> 8 );
-	uint16_t bg = ( bgcolor << 8 ) | ( bgcolor >> 8 );
-
 	begin_send_data();
 
 	uint8_t bits;
@@ -363,7 +366,7 @@ static int draw_char( const uint16_t c, int x, int y )
 		for ( int i = 0 ; i < cw ; ++i )
 		{
 			if ( !( i & 0x7 ) ) bits = *bitmap++;
-			send_bytes( bits >> 7 ? &fg : &bg, sizeof( uint16_t ), 2 );
+			send_bytes( bits >> 7 ? &fgcolor : &bgcolor, sizeof( uint16_t ), 2 );
 			bits <<= 1;
 		}
 	}
@@ -405,7 +408,7 @@ void rainbow( void )
 			r = 32 * c / 80;
 			b = ( 32 * ( c + l ) / 240 ) ^ 0x1F;
 
-			uint32_t c = b << 11 | g << 5 | r;
+			uint16_t c = b << 11 | g << 5 | r;
 			send_data_word( c );
 		}
 	}

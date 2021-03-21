@@ -86,6 +86,9 @@ int main( void )
 	StartupDevices();
 	StartupBox();
 
+	uint8_t b = 25;
+	VOISet( VOI_BRIGHTNESS, &b );
+
 	while ( 1 )
 	{
 		SMRefresh();

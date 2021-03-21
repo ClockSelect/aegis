@@ -96,7 +96,6 @@ int EMGetNextEvent( Event_t *ev )
 //==============================================================================
 
 static void EMKeyEvent( Event_t *ev );
-static void EMDisplayEvent( Event_t *ev );
 static void EMHardwareEvent( Event_t *ev );
 
 
@@ -112,7 +111,7 @@ void EMHandleEvents()
 		Event_t ev;
 		EMGetNextEvent( &ev );
 
-		PrintEvent( &ev );
+//		PrintEvent( &ev );
 
 		switch ( ev.type )
 		{

@@ -78,8 +78,12 @@ void DMEvent( Event_t *ev )
 			switch ( ev->p1 )
 			{
 				case DISPLAY_ON:
-					DELAYED_EVENT( 1, EVENT_DISPLAY, EV_D_BRIGHTNESS, 25, 0 );
+				{
+					uint8_t b;
+					VOIGet( VOI_BRIGHTNESS, &b );
+					DELAYED_EVENT( 1, EVENT_DISPLAY, EV_D_BRIGHTNESS, b, 0 );
 					break;
+				}
 			}
 			break;
 		}

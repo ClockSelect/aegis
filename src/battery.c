@@ -8,9 +8,9 @@
 
 typedef struct battery_s
 {
-	uint32_t	vcell1;
-	uint32_t	vcell2;
-	uint32_t	vtotal;
+	uint16_t	vcell1;
+	uint16_t	vcell2;
+	uint16_t	vtotal;
 	BATT_STATUS	status;
 	uint8_t		cell1_low	:1;
 	uint8_t		cell2_low	:1;
@@ -69,13 +69,9 @@ void BMReadBattery( void )
 	battery.vcell1 = vbat1;
 	battery.vcell2 = vbat2;
 	battery.vtotal = vbat1 + vbat2;
-}
 
-
-void BMGetCells( uint32_t *v1, uint32_t *v2 )
-{
-	*v1 = battery.vcell1;
-	*v2 = battery.vcell2;
+	VOISet( VOI_VCELL1, &battery.vcell1 );
+	VOISet( VOI_VCELL2, &battery.vcell2 );
 }
 
 
@@ -98,6 +94,8 @@ void BMUpdateStatus( void )
 		battery.status = BATT_OK;
 		PF4 = 1;
 	}
+
+	VOISet( VOI_BATT_STATUS, &battery.status );
 
 	if ( battery.status != old )
 	{

@@ -20,7 +20,10 @@ extern int	ScrIdleDraw( void )
 
 extern void	ScrIdleClose( void )
 {
-	DMSetBrightness( 25 );
+	uint8_t b;
+
+	VOIGet( VOI_BRIGHTNESS, &b );
+	DMSetBrightness( b );
 }
 
 extern int	ScrIdleEvent( Event_t *ev )

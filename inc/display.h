@@ -5,10 +5,10 @@
 
 typedef struct rect
 {
-	uint16_t	left;
-	uint16_t	top;
-	uint16_t	right;
-	uint16_t	bottom;
+	uint8_t	left;
+	uint8_t	top;
+	uint8_t	right;
+	uint8_t	bottom;
 }
 rect_t;
 

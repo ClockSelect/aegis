@@ -153,6 +153,7 @@ void SMRefresh( void )
 	{
 		if ( screen.s->pf_draw() )
 		{
+			screen.opening_tick = t;
 			screen.last_refresh = t;
 		}
 	}

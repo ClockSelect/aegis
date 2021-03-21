@@ -96,8 +96,6 @@ void BXCheckActivity( void )
 //------------------------------------------------------------------------------
 static void GoToSleep( void )
 {
-	// Quick and dirty. :)
-
 	DMShutdown();
 
 	DisableSPI0();
@@ -131,6 +129,7 @@ static void GoToSleep( void )
 	CLK_PowerDown();
 	SYS_LockReg();
 
+	// Why bother restarting all devices ?
 	ResetChip( 0 );
 }
 

@@ -240,7 +240,6 @@ BATT_STATUS;
 extern void	BMStartup( void );
 extern void BMUpdateBattery( void );
 extern void BMReadBattery( void );
-extern void BMGetCells( uint32_t *v1, uint32_t *v2 );
 extern void BMUpdateStatus( void );
 extern BATT_STATUS BMGetStatus( void );
 
@@ -279,6 +278,13 @@ extern int	IsUSBPlugged( void );
 #define BOX_IDLE	(0x1<<BOX_LCK_Pos)
 #define BOX_LOCKED	(0x2<<BOX_LCK_Pos)
 
+typedef enum eVapeMode
+{
+	VAPE_MODE_POWER	= 0,
+	VAPE_MODE_MAX
+}
+VAPE_MODE;
+
 typedef uint8_t BOX_STATE;
 
 extern void	BXStartup( void );
@@ -291,6 +297,38 @@ static FINLINE BOX_STATE BXGetState() { return bx_box_state; }
 extern uint32_t bx_last_activity;
 static FINLINE void	BXUserActivity() { bx_last_activity = GetSysTick(); }
 static FINLINE uint32_t	BXLastActivity() { return bx_last_activity; }
+
+
+//==============================================================================
+//	Values of interest
+//------------------------------------------------------------------------------
+
+//	Enumeration of all values of interest.
+//	Any value listed above VOI_ENDCONFIG are supposed to be saved in the
+//	dataflash configuration.
+//	When adding or removing a value in this enum, the voi_sizes array in
+//	the voi.c file must also be updated.
+typedef enum voi_id_e
+{
+	VOI_BRIGHTNESS,
+	VOI_ENDCONFIG,
+	VOI_VCELL1,
+	VOI_VCELL2,
+	VOI_BATT_STATUS,
+	VOI_MAX
+}
+VOI_ID;
+
+typedef enum voi_user_e
+{
+	VOI_USCREEN,
+	VOI_UCONFIG
+}
+VOI_USER;
+
+extern uint8_t	VOISet( VOI_ID id, const void *p );
+extern void		VOIGet( VOI_ID id, void *p );
+extern int		VOIGetChanged( VOI_ID id, void *p, VOI_USER who );
 
 
 //==============================================================================
